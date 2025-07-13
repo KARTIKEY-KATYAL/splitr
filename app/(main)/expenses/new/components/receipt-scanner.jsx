@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,9 +155,11 @@ export function ReceiptScanner({ onReceiptParsed }) {
           <div className="space-y-4">
             {/* Image Preview */}
             <div className="relative">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Receipt preview"
+                width={400}
+                height={192}
                 className="w-full h-48 object-cover rounded-lg border"
               />
               <Button

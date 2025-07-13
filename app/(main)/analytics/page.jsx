@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, BarChart3, PieChart, Calendar, DollarSign, Target } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, PieChart, DollarSign, Target } from "lucide-react";
 import { useConvexQuery } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 
@@ -218,7 +218,7 @@ export function ExpenseAnalytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {trends.map((period, index) => {
+              {trends.map((period) => {
                 const maxSpent = Math.max(...trends.map(p => p.totalSpent));
                 const percentage = maxSpent > 0 ? (period.totalSpent / maxSpent) * 100 : 0;
 

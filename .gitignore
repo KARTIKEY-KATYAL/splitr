@@ -39,3 +39,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cache and temporary files
+*.tmp
+*.cache
+*.log
+.turbo/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Build artifacts
+dist/
+*.tgz
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Cleanup script (optional - remove this line if you want to commit it)
+cleanup.bat

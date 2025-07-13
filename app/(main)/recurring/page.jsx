@@ -56,7 +56,7 @@ export function RecurringExpenses() {
     try {
       await toggleRecurring.mutate({ id, isActive: !isActive });
       toast.success(`Recurring expense ${!isActive ? "activated" : "paused"}`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update recurring expense");
     }
   };
@@ -67,7 +67,7 @@ export function RecurringExpenses() {
     try {
       await deleteRecurring.mutate({ id });
       toast.success("Recurring expense deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete recurring expense");
     }
   };
@@ -76,7 +76,7 @@ export function RecurringExpenses() {
     try {
       await createFromRecurring.mutate({ recurringId });
       toast.success(`Created expense from "${description}"`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to create expense");
     }
   };
@@ -105,7 +105,7 @@ export function RecurringExpenses() {
       toast.success("Recurring expense created");
       setNewRecurring({ description: "", amount: "", category: "", frequency: "monthly" });
       setIsCreateDialogOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to create recurring expense");
     }
   };

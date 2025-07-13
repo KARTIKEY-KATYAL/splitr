@@ -41,19 +41,21 @@ export default function Dashboard() {
     api.dashboard.getTotalSpent
   );
 
-  const { data: monthlySpending, isLoading: monthlySpendingLoading } =
-    useConvexQuery(api.dashboard.getMonthlySpending);
+  // Remove unused monthlySpending query
+  // const { data: monthlySpending, isLoading: monthlySpendingLoading } =
+  //   useConvexQuery(api.dashboard.getMonthlySpending);
 
   // New feature data
   const { data: budgetOverview } = useConvexQuery(api.budgets.getBudgetOverview);
   const { data: recurringExpenses } = useConvexQuery(api.recurring.getRecurringExpenses);
   const { data: smartSuggestions } = useConvexQuery(api.suggestions.getSmartSuggestions);
 
-  const isLoading =
-    balancesLoading ||
-    groupsLoading ||
-    totalSpentLoading ||
-    monthlySpendingLoading;
+  // Remove unused isLoading variable
+  // const isLoading =
+  //   balancesLoading ||
+  //   groupsLoading ||
+  //   totalSpentLoading ||
+  //   monthlySpendingLoading;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -63,7 +65,7 @@ export default function Dashboard() {
           Welcome back!
         </h1>
         <p className="text-muted-foreground mt-1 animate-stagger-2">
-          Here's your financial overview and recent activity
+          Here&apos;s your financial overview and recent activity
         </p>
       </div>
 

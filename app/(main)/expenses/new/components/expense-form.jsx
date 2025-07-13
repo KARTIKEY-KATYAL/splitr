@@ -25,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, Camera, Sparkles } from "lucide-react";
+import { CalendarIcon, Camera } from "lucide-react";
 import { getAllCategories } from "@/lib/expense-categories";
 
 // Form schema validation

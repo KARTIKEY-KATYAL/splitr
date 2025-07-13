@@ -61,7 +61,7 @@ export function SmartSuggestions({ onSuggestionSelect, participants = [], groupI
 
       setIsDialogOpen(false);
       toast.success("Expense created from suggestion");
-    } catch (error) {
+    } catch {
       toast.error("Failed to use suggestion");
     }
   };
@@ -70,7 +70,7 @@ export function SmartSuggestions({ onSuggestionSelect, participants = [], groupI
     try {
       await dismissSuggestion.mutate({ suggestionId });
       toast.success("Suggestion dismissed");
-    } catch (error) {
+    } catch {
       toast.error("Failed to dismiss suggestion");
     }
   };
@@ -79,7 +79,7 @@ export function SmartSuggestions({ onSuggestionSelect, participants = [], groupI
     try {
       const count = await generateSuggestions.mutate({});
       toast.success(`Generated ${count} new suggestions`);
-    } catch (error) {
+    } catch {
       toast.error("Failed to generate suggestions");
     }
   };

@@ -8,14 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PieChart, AlertTriangle, TrendingUp, Plus, Edit } from "lucide-react";
+import { PieChart, AlertTriangle, Plus, Edit } from "lucide-react";
 import { useConvexQuery, useConvexMutation } from "@/hooks/use-convex-query";
 import { api } from "@/convex/_generated/api";
 import { getAllCategories } from "@/lib/expense-categories";
 import { toast } from "sonner";
 
 export function BudgetTracker() {
-  const [editingBudget, setEditingBudget] = useState(null);
+  // Remove unused editingBudget state
+  // const [editingBudget, setEditingBudget] = useState(null);
   const [newBudget, setNewBudget] = useState({ category: "", amount: "" });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -51,7 +52,7 @@ export function BudgetTracker() {
       toast.success("Budget updated successfully");
       setNewBudget({ category: "", amount: "" });
       setIsDialogOpen(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to update budget");
     }
   };
@@ -125,7 +126,7 @@ export function BudgetTracker() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Object.entries(budgetOverview).map(([category, data], index) => {
-          const { color, textColor, bgColor } = getBudgetStatus(data.status);
+          const { textColor, bgColor } = getBudgetStatus(data.status);
           const categoryInfo = categories.find(c => c.id === category) || { name: category };
 
           return (

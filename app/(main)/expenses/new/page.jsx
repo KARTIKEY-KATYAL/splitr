@@ -83,7 +83,7 @@ export default function NewExpensePage() {
           {activeView === "suggestions" && (
             <div className="space-y-6">
               <SmartSuggestions
-                onSuggestionSelect={(suggestion) => {
+                onSuggestionSelect={(_suggestion) => {
                   // Switch to form view and pre-populate
                   setActiveView("form");
                   // The suggestion will be handled by the form component
@@ -95,7 +95,7 @@ export default function NewExpensePage() {
           {activeView === "scanner" && (
             <div className="space-y-6">
               <ReceiptScanner
-                onReceiptParsed={(data) => {
+                onReceiptParsed={(_data) => {
                   // Switch to form view and pre-populate with receipt data
                   setActiveView("form");
                   // The receipt data will be handled by the form component
@@ -115,7 +115,7 @@ export default function NewExpensePage() {
         <div className="space-y-4">
           {activeView !== "suggestions" && (
             <SmartSuggestions
-              onSuggestionSelect={(suggestion) => {
+              onSuggestionSelect={(_suggestion) => {
                 setActiveView("form");
                 // The suggestion handling will be managed by form state
               }}

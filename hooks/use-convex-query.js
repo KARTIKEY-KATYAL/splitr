@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -56,4 +56,9 @@ export const useConvexMutation = (mutation) => {
   };
 
   return { mutate, data, isLoading, error };
+};
+
+// Export useConvexAction for action hooks
+export const useConvexAction = (action) => {
+  return useAction(action);
 };

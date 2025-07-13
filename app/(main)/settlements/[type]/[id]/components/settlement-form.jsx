@@ -34,7 +34,6 @@ export default function SettlementForm({ entityType, entityData, onSuccess }) {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(settlementSchema),
