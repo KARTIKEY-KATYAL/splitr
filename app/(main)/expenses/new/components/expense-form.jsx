@@ -15,6 +15,8 @@ import { ParticipantSelector } from "./participant-selector";
 import { GroupSelector } from "./group-selector";
 import { CategorySelector } from "./category-selector";
 import { SplitSelector } from "./split-selector";
+import { SmartSuggestions } from "./smart-suggestions";
+import { ReceiptScanner } from "./receipt-scanner";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import {
@@ -23,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Camera, Sparkles } from "lucide-react";
 import { getAllCategories } from "@/lib/expense-categories";
 
 // Form schema validation
@@ -47,6 +49,8 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [splits, setSplits] = useState([]);
+  const [receiptData, setReceiptData] = useState(null);
+  const [activeTab, setActiveTab] = useState("manual");
 
   // Mutations and queries
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
@@ -96,57 +100,77 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
 
   // Handle form submission
   const onSubmit = async (data) => {
+    if (!splits.length) {
+      toast.error("Please add participants and configure splits");
+      return;
+    }
+
     try {
-      const amount = parseFloat(data.amount);
-
-      // Prepare splits in the format expected by the API
-      const formattedSplits = splits.map((split) => ({
-        userId: split.userId,
-        amount: split.amount,
-        paid: split.userId === data.paidByUserId,
-      }));
-
-      // Validate that splits add up to the total (with small tolerance)
-      const totalSplitAmount = formattedSplits.reduce(
-        (sum, split) => sum + split.amount,
-        0
-      );
-      const tolerance = 0.01;
-
-      if (Math.abs(totalSplitAmount - amount) > tolerance) {
-        toast.error(
-          `Split amounts don't add up to the total. Please adjust your splits.`
-        );
-        return;
-      }
-
-      // For 1:1 expenses, set groupId to undefined instead of empty string
-      const groupId = type === "individual" ? undefined : data.groupId;
-
-      // Create the expense
-      await createExpense.mutate({
+      const expenseData = {
         description: data.description,
-        amount: amount,
-        category: data.category || "Other",
-        date: data.date.getTime(), // Convert to timestamp
+        amount: parseFloat(data.amount),
+        category: data.category,
+        date: selectedDate.getTime(),
         paidByUserId: data.paidByUserId,
         splitType: data.splitType,
-        splits: formattedSplits,
-        groupId,
-      });
+        splits: splits.map((split) => ({
+          userId: split.userId,
+          amount: split.amount,
+          paid: split.paid,
+        })),
+        groupId: selectedGroup?._id,
+      };
+
+      // Add receipt data if available
+      if (receiptData) {
+        expenseData.receiptImageUrl = receiptData.receiptImageUrl;
+        expenseData.receiptData = receiptData.receiptData;
+      }
+
+      const expenseId = await createExpense.mutate(expenseData);
 
       toast.success("Expense created successfully!");
-      reset(); // Reset form
+      reset();
+      setParticipants([]);
+      setSplits([]);
+      setReceiptData(null);
+      setActiveTab("manual");
 
-      const otherParticipant = participants.find(
-        (p) => p.id !== currentUser._id
-      );
-      const otherUserId = otherParticipant?.id;
-
-      if (onSuccess) onSuccess(type === "individual" ? otherUserId : groupId);
+      if (onSuccess) {
+        onSuccess(expenseId);
+      }
     } catch (error) {
       toast.error("Failed to create expense: " + error.message);
     }
+  };
+
+  const handleSuggestionSelect = (suggestion) => {
+    setValue("description", suggestion.description);
+    setValue("amount", suggestion.amount.toString());
+    setValue("category", suggestion.category);
+
+    if (suggestion.receiptImageUrl) {
+      setReceiptData({
+        receiptImageUrl: suggestion.receiptImageUrl,
+        receiptData: suggestion.receiptData,
+      });
+    }
+
+    toast.success("Suggestion applied to form");
+  };
+
+  const handleReceiptParsed = (parsedData) => {
+    setValue("description", parsedData.description);
+    setValue("amount", parsedData.amount.toString());
+    setValue("category", parsedData.category);
+
+    setReceiptData({
+      receiptImageUrl: parsedData.receiptImageUrl,
+      receiptData: parsedData.receiptData,
+    });
+
+    setActiveTab("manual");
+    toast.success("Receipt data applied to form");
   };
 
   if (!currentUser) return null;
@@ -346,6 +370,42 @@ export function ExpenseForm({ type = "individual", onSuccess }) {
                 paidByUserId={paidByUserId}
                 onSplitsChange={setSplits} // Use setSplits directly
               />
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Smart Suggestions and Receipt Scanner */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="mb-0">Smart Suggestions</Label>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setActiveTab("scanner")}
+            >
+              <Camera className="h-5 w-5" />
+            </Button>
+          </div>
+
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+              <TabsTrigger value="scanner">Receipt Scanner</TabsTrigger>
+            </TabsList>
+            <TabsContent value="manual" className="pt-4">
+              <SmartSuggestions
+                onSelect={handleSuggestionSelect}
+                participants={participants}
+                amount={amountValue}
+                currentUserId={currentUser._id}
+              />
+            </TabsContent>
+            <TabsContent value="scanner" className="pt-4">
+              <ReceiptScanner onParsed={handleReceiptParsed} />
             </TabsContent>
           </Tabs>
         </div>

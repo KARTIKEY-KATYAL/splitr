@@ -19,6 +19,17 @@ export const createExpense = mutation({
       })
     ),
     groupId: v.optional(v.id("groups")),
+    // New optional fields
+    receiptImageUrl: v.optional(v.string()),
+    receiptData: v.optional(
+      v.object({
+        extractedText: v.optional(v.string()),
+        confidence: v.optional(v.number()),
+        merchantName: v.optional(v.string()),
+        extractedAmount: v.optional(v.number()),
+      })
+    ),
+    recurringExpenseId: v.optional(v.id("recurringExpenses")),
   },
   handler: async (ctx, args) => {
     // Use centralized getCurrentUser function
@@ -60,7 +71,31 @@ export const createExpense = mutation({
       splits: args.splits,
       groupId: args.groupId,
       createdBy: user._id,
+      receiptImageUrl: args.receiptImageUrl,
+      receiptData: args.receiptData,
+      recurringExpenseId: args.recurringExpenseId,
     });
+
+    // Update budget spent amounts for each participant
+    for (const split of args.splits) {
+      await ctx.runMutation(internal.budgets.updateBudgetSpent, {
+        category: args.category || "other",
+        amount: split.amount,
+        userId: split.userId,
+      });
+    }
+
+    // Clear analytics cache for affected users
+    for (const split of args.splits) {
+      const cacheEntries = await ctx.db
+        .query("analyticsCache")
+        .withIndex("by_user_range", (q) => q.eq("userId", split.userId))
+        .collect();
+
+      for (const entry of cacheEntries) {
+        await ctx.db.delete(entry._id);
+      }
+    }
 
     return expenseId;
   },

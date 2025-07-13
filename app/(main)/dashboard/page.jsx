@@ -11,7 +11,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Users, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  PlusCircle,
+  Users,
+  ChevronRight,
+  TrendingUp,
+  PieChart,
+  Repeat,
+  Camera,
+  Sparkles,
+  BarChart3,
+} from "lucide-react";
 import Link from "next/link";
 import { ExpenseSummary } from "./components/expense-summary";
 import { BalanceSummary } from "./components/balance-summary";
@@ -33,6 +44,11 @@ export default function Dashboard() {
   const { data: monthlySpending, isLoading: monthlySpendingLoading } =
     useConvexQuery(api.dashboard.getMonthlySpending);
 
+  // New feature data
+  const { data: budgetOverview } = useConvexQuery(api.budgets.getBudgetOverview);
+  const { data: recurringExpenses } = useConvexQuery(api.recurring.getRecurringExpenses);
+  const { data: smartSuggestions } = useConvexQuery(api.suggestions.getSmartSuggestions);
+
   const isLoading =
     balancesLoading ||
     groupsLoading ||
@@ -40,185 +56,336 @@ export default function Dashboard() {
     monthlySpendingLoading;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {isLoading ? (
-        <div className="w-full py-12 flex justify-center animate-pulse">
-          <div className="space-y-4 w-full max-w-md">
-            <div className="animate-loading-pulse">
-              <BarLoader width={"100%"} color="hsl(var(--accent))" />
-            </div>
-            <div className="text-center text-theme-muted animate-typewriter">
-              Loading your dashboard...
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="animate-fade-in">
-          <div className="flex justify-between flex-col sm:flex-row sm:items-center gap-4 animate-slide-up-fade">
-            <div className="animate-fade-in animate-delay-100">
-              <h1 className="text-5xl title-black animate-typewriter">Dashboard</h1>
-              <p className="text-muted-foreground mt-2 animate-slide-up animate-delay-200">
-                Track your expenses and manage your finances
-              </p>
-            </div>
-            <div className="flex gap-2 animate-slide-left animate-delay-300">
-              <Button asChild className="btn-red animate-hover-lift hover-glow magnetic-button">
-                <Link href="/expenses/new">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add expense
-                </Link>
-              </Button>
-              <Button asChild className="btn-blue-outline animate-hover-lift animate-hover-scale">
-                <Link href="/contacts?createGroup=true">
-                  <Users className="h-4 w-4 mr-2" />
-                  Create Group
-                </Link>
-              </Button>
-            </div>
-          </div>
+    <div className="space-y-8 animate-fade-in">
+      {/* Header */}
+      <div className="animate-slide-up-fade">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 animate-stagger-1">
+          Welcome back!
+        </h1>
+        <p className="text-muted-foreground mt-1 animate-stagger-2">
+          Here's your financial overview and recent activity
+        </p>
+      </div>
 
-          {/* Balance overview cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-slide-up-fade animate-stagger-1">
-            <Card className="card-enhanced animate-hover-lift card-stack animate-scale-in animate-stagger-1 hover-glow transition-all duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground animate-fade-in animate-stagger-2">
-                  Total Balance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold animate-fade-in animate-stagger-3">
-                  {balances?.totalBalance > 0 ? (
-                    <span className="text-positive animate-bounce-in-up animate-stagger-4">
-                      +${balances?.totalBalance.toFixed(2)}
-                    </span>
-                  ) : balances?.totalBalance < 0 ? (
-                    <span className="text-negative animate-shake animate-stagger-4">
-                      -${Math.abs(balances?.totalBalance).toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="animate-pulsing">$0.00</span>
-                  )}
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-slide-up-fade animate-stagger-3">
+        <Card className="hover-glow cursor-pointer transition-all">
+          <Link href="/expenses/new">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <PlusCircle className="h-5 w-5 text-primary" />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 animate-fade-in animate-stagger-5">
-                  {balances?.totalBalance > 0
-                    ? "You are owed money"
-                    : balances?.totalBalance < 0
-                      ? "You owe money"
-                      : "All settled up!"}
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-enhanced animate-hover-lift card-stack animate-scale-in animate-stagger-2 hover-glow transition-all duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground animate-fade-in animate-stagger-3">
-                  You are owed
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-positive animate-fade-in animate-stagger-4">
-                  ${balances?.youAreOwed.toFixed(2)}
+                <div>
+                  <p className="font-medium">Add Expense</p>
+                  <p className="text-sm text-muted-foreground">
+                    Create new expense
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 animate-fade-in animate-stagger-5">
-                  From {balances?.oweDetails?.youAreOwedBy?.length || 0} people
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="card-enhanced animate-hover-lift card-stack animate-scale-in animate-stagger-3 hover-glow transition-all duration-300">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground animate-fade-in animate-stagger-4">
-                  You owe
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {balances?.oweDetails?.youOwe?.length > 0 ? (
-                  <>
-                    <div className="text-2xl font-bold text-negative animate-fade-in animate-stagger-5">
-                      ${balances?.youOwe.toFixed(2)}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1 animate-fade-in animate-stagger-6">
-                      To {balances?.oweDetails?.youOwe?.length || 0} people
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold animate-fade-in animate-stagger-5">$0.00</div>
-                    <p className="text-xs text-muted-foreground mt-1 animate-fade-in animate-stagger-6">
-                      You don&apos;t owe anyone
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main dashboard content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up-fade animate-stagger-3">
-            {/* Left column */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Expense summary */}
-              <div className="animate-scale-in animate-stagger-4">
-                <ExpenseSummary
-                  monthlySpending={monthlySpending}
-                  totalSpent={totalSpent}
-                />
               </div>
-            </div>
+            </CardContent>
+          </Link>
+        </Card>
 
-            {/* Right column */}
-            <div className="space-y-6 animate-slide-in-right animate-stagger-5">
-              {/* Balance details */}
-              <Card className="card-enhanced animate-hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="animate-fade-in animate-stagger-6">Balance Details</CardTitle>
-                    <Button variant="link" asChild className="p-0 animate-hover-scale">
-                      <Link href="/contacts">
-                        View all
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="animate-fade-in animate-stagger-7">
-                    <BalanceSummary balances={balances} />
-                  </div>
-                </CardContent>
-              </Card>
+        <Card className="hover-glow cursor-pointer transition-all">
+          <Link href="/expenses/new?tab=scanner">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-100 p-2 rounded-full">
+                  <Camera className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Scan Receipt</p>
+                  <p className="text-sm text-muted-foreground">
+                    Auto-extract data
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800 text-xs"
+                >
+                  New
+                </Badge>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
 
-              {/* Groups */}
-              <Card className="card-enhanced animate-hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="animate-fade-in animate-stagger-8">Your Groups</CardTitle>
-                    <Button variant="link" asChild className="p-0 animate-hover-scale">
-                      <Link href="/contacts">
-                        View all
-                        <ChevronRight className="ml-1 h-4 w-4" />
-                      </Link>
-                    </Button>
+        <Card className="hover-glow cursor-pointer transition-all">
+          <Link href="/analytics">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-purple-100 p-2 rounded-full">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Analytics</p>
+                  <p className="text-sm text-muted-foreground">
+                    Spending insights
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800 text-xs"
+                >
+                  New
+                </Badge>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+
+        <Card className="hover-glow cursor-pointer transition-all">
+          <Link href="/recurring">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-orange-100 p-2 rounded-full">
+                  <Repeat className="h-5 w-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-medium">Recurring</p>
+                  <p className="text-sm text-muted-foreground">
+                    {recurringExpenses?.length || 0} active
+                  </p>
+                </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-800 text-xs"
+                >
+                  New
+                </Badge>
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+      </div>
+
+      {/* Smart Features Row */}
+      <div className="grid gap-4 lg:grid-cols-3 animate-slide-up-fade animate-stagger-4">
+        {/* Smart Suggestions Preview */}
+        <Card className="hover-glow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Smart Suggestions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {smartSuggestions && smartSuggestions.length > 0 ? (
+              <div className="space-y-2">
+                {smartSuggestions.slice(0, 2).map((suggestion) => (
+                  <div
+                    key={suggestion._id}
+                    className="p-2 bg-muted rounded text-sm"
+                  >
+                    <p className="font-medium">{suggestion.description}</p>
+                    <p className="text-muted-foreground">
+                      ${suggestion.avgAmount.toFixed(2)} • {suggestion.frequency}
+                    </p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="animate-fade-in animate-stagger-9">
-                    <GroupList groups={groups} />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" asChild className="w-full animate-hover-lift magnetic-button">
-                    <Link href="/contacts?createGroup=true">
-                      <Users className="mr-2 h-4 w-4" />
-                      Create new group
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Create more expenses to get personalized suggestions
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="w-full"
+            >
+              <Link href="/expenses/new">View All Suggestions</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Budget Overview Preview */}
+        <Card className="hover-glow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-primary" />
+              Budget Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {budgetOverview && Object.keys(budgetOverview).length > 0 ? (
+              <div className="space-y-2">
+                {Object.entries(budgetOverview)
+                  .slice(0, 2)
+                  .map(([category, data]) => (
+                    <div
+                      key={category}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-sm capitalize">{category}</span>
+                      <Badge
+                        variant={
+                          data.status === "danger" ? "destructive" : "outline"
+                        }
+                        className="text-xs"
+                      >
+                        {data.percentage.toFixed(0)}%
+                      </Badge>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Set up budgets to track your spending
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="w-full"
+            >
+              <Link href="/expenses/new">Manage Budgets</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Recurring Expenses Preview */}
+        <Card className="hover-glow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-primary" />
+              Recurring Expenses
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recurringExpenses && recurringExpenses.length > 0 ? (
+              <div className="space-y-2">
+                {recurringExpenses.slice(0, 2).map((expense) => {
+                  const nextDue = new Date(expense.nextDue);
+                  const isOverdue = nextDue < new Date();
+
+                  return (
+                    <div
+                      key={expense._id}
+                      className="p-2 bg-muted rounded text-sm"
+                    >
+                      <p className="font-medium">{expense.description}</p>
+                      <p
+                        className={`text-xs ${
+                          isOverdue ? "text-red-600" : "text-muted-foreground"
+                        }`}
+                      >
+                        ${expense.amount.toFixed(2)} •{" "}
+                        {isOverdue ? "Overdue" : "Due soon"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Set up recurring expenses for bills and subscriptions
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="pt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="w-full"
+            >
+              <Link href="/recurring">Manage Recurring</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Main Dashboard Content */}
+      <div className="grid gap-6 lg:grid-cols-2 animate-slide-up-fade animate-stagger-5">
+        {/* Balance Summary */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Your Balances</h2>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/settlements">
+                View All
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
+          {balancesLoading ? (
+            <Card>
+              <CardContent className="py-8">
+                <BarLoader
+                  color="#3b82f6"
+                  loading={true}
+                  height={4}
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <BalanceSummary balances={balances} />
+          )}
         </div>
-      )}
+
+        {/* Groups */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Your Groups</h2>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/groups">
+                <Users className="mr-2 h-4 w-4" />
+                Manage Groups
+              </Link>
+            </Button>
+          </div>
+          {groupsLoading ? (
+            <Card>
+              <CardContent className="py-8">
+                <BarLoader
+                  color="#3b82f6"
+                  loading={true}
+                  height={4}
+                  width="100%"
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <GroupList groups={groups} />
+          )}
+        </div>
+      </div>
+
+      {/* Expense Summary */}
+      <div className="animate-slide-up-fade animate-stagger-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">Spending Summary</h2>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/analytics">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              View Analytics
+            </Link>
+          </Button>
+        </div>
+        {totalSpentLoading ? (
+          <Card>
+            <CardContent className="py-8">
+              <BarLoader
+                color="#3b82f6"
+                loading={true}
+                height={4}
+                width="100%"
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          <ExpenseSummary totalSpent={totalSpent} />
+        )}
+      </div>
     </div>
   );
 }
